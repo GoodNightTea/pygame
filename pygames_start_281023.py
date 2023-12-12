@@ -1,7 +1,9 @@
 import pygame
 from sys import exit
-import time
-
+#
+#
+#=========Todo========
+#fucking uuuh mach sound system yuh :3
 
 score = 0 
 ground = 300
@@ -11,11 +13,13 @@ y_velocity = 0
 on_ground = True
 collision = False
 life = 5
+
 collision = False
 collision_immune = True
 collision_time = 0
-point_counted = False
-dt = 0
+
+point_time = 0
+point_immune = True
 
 # starts pygame and helps render sounds etc.
 pygame.init()
@@ -24,7 +28,8 @@ pygame.init()
 screen = pygame.display.set_mode((800,400))
 pygame.display.set_caption('Test')
 clock = pygame.time.Clock()
-test_font = pygame.font.Font('font/Pixeltype.ttf',50)
+test_font = pygame.font.Font('font/Pixeltype.ttf', 50)
+jump_audio = 
 
 sky_surf = pygame.image.load('graphics/Sky.png').convert()
 ground_surf = pygame.image.load('graphics/ground.png').convert()
@@ -45,13 +50,13 @@ player_surf2 = pygame.image.load('graphics/player/player_walk_2.png').convert_al
 player_rect2 = player_surf.get_rect(midbottom = (80,300))
 
 player_standing = pygame.image.load('graphics/player/player_stand.png').convert_alpha()
-player_standing_rec = player_surf.get_rect(midbottom = (80,300))
+player_standing_rec = player_surf.get_rect(midbottom = (80, 300))
 
-lives_surf = test_font.render('Lives:', False, 'Black')
-lives_rect = lives_surf.get_rect(center = (300, 50))
+lives_surf = test_font.render('Lives: ', False, 'LightBlue')
+lives_rect = lives_surf.get_rect(center = (700, 50) )
 
-score_surf = test_font.render('Score:', False, 'Black')
-score_rect = score_surf.get_rect(center = (425, 50))
+score_surf = test_font.render('Score:', False, 'LightBlue')
+score_rect = score_surf.get_rect(center = (700, 100))
 
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
@@ -68,23 +73,14 @@ while True:
                 on_ground = False
 
     keys = pygame.key.get_pressed()
-        
     if keys[pygame.K_a]:
         player_rect.x -= 5
-    else:
-        screen.blit(player_standing, player_standing_rec)
+    
     if keys[pygame.K_d]:
         player_rect.x += 5
-    else:
-         screen.blit(player_standing, player_standing_rec)
         
-    point_counted = True
     
-    if snail_rect1.right <= player_rect.left and not collision and not point_counted:
-        score += 1
-        point_counted = True
-    elif snail_rect1.right > player_rect.left:
-        point_counted = False
+    
     
     screen.blit(sky_surf,(0,0))
     screen.blit(ground_surf,(0,300))
@@ -116,25 +112,36 @@ while True:
     else:
         collision = False
     
-
+    
     # Check collision immunity
     if collision_immune and pygame.time.get_ticks() - collision_time > 1500:
         collision_immune = False
-       
-    elif snail_rect1.right <= 6:
-        if collision_immune == False:
-            score += 1
-        
+    
+    
+    elif player_rect.x > snail_rect1.x and not point_immune:
+        if player_rect.y < snail_rect1.y -50:   
+            score +=1
+            point_immune = True
+            point_time = pygame.time.get_ticks()
+        else:
+            point_immune = False
+            
+    #check point immunity
+    if point_immune and pygame.time.get_ticks() - point_time > 2300:
+        point_immune = False  
+
     
     if life < 1:
         snail_rect1.right += 4
-        y_velocity = jump        
+        on_ground = False
         
     game_score_surf = test_font.render(str(score), False, 'LightBlue')
-    game_score_rect = score_surf.get_rect(center = (800, 50))
+    game_score_rect = score_surf.get_rect(center = (810, 102))
+    
     screen.blit(game_score_surf, game_score_rect)
+    
     lifes_surf = test_font.render(str(life), False, 'LightBlue')
-    lifes_rect = lifes_surf.get_rect(center = (700, 50))
+    lifes_rect = lifes_surf.get_rect(center = (760, 50))
     screen.blit(lifes_surf, lifes_rect)
 
                                 
