@@ -1,7 +1,8 @@
 import pygame
 from sys import exit
 
-# starts pygame and helps render sounds etc.
+# outdated = only for testing
+
 pygame.init()
 
 # creates a display surface
