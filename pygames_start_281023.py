@@ -1,7 +1,8 @@
 import pygame
 from sys import exit
 #
-#
+#===helpful shit iono===
+#https://www.pygame.org/docs/
 #=========Todo========
 #fucking uuuh mach sound system mit pycdio 2.1.1 da pygame a cunt isch 
 
