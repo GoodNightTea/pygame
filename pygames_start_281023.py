@@ -3,7 +3,7 @@ from sys import exit
 #
 #
 #=========Todo========
-#fucking uuuh mach sound system yuh :3
+#fucking uuuh mach sound system mit pycdio 2.1.1 da pygame a cunt isch 
 
 score = 0 
 ground = 300
