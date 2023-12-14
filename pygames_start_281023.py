@@ -1,8 +1,5 @@
 import pygame
 from sys import exit
-import time
-
-#todo sound system mit pycdio 2.1.1
 
 # Constants
 GROUND = 300
@@ -25,21 +22,31 @@ ground_surf = pygame.image.load('graphics/ground.png').convert()
 snail_surf1 = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
 snail_rect1 = snail_surf1.get_rect(bottomright=(600, 300))
 
-player_surf = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
-player_rect = player_surf.get_rect(midbottom=(80, 300))
+player_surf1 = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
+player_surf2 = pygame.image.load('graphics/player/player_walk_2.png').convert_alpha()
+player_surfaces = [player_surf1, player_surf2]
+player_surface_index = 0
+player_rect = player_surfaces[player_surface_index].get_rect(midbottom=(80, 300))
 
-#Loads stat
+
+# Loads stat
 score_surf = test_font.render('Score:', False, 'LightBlue')
-score_rect = score_surf.get_rect(center = (700, 100))
+score_rect = score_surf.get_rect(center=(700, 100))
 
 lives_surf = test_font.render('Lives: ', False, 'LightBlue')
-lives_rect = lives_surf.get_rect(center = (700, 50) )
+lives_rect = lives_surf.get_rect(center=(700, 50))
 
-#pause screen
-Paused_surf = test_font.render('Paused', True, 'Black')
-Paused_rect = Paused_surf.get_rect(center = (400, 200))
+# pause screen
+Paused_surf = test_font.render('Paused', False, 'Black')
+Paused_rect = Paused_surf.get_rect(center=(400, 200))
+
+afterpaused_surf = test_font.render('Press [Space] to continue', False, 'Black')
+afterpaused_rect = afterpaused_surf.get_rect(center=(400, 200))
 
 # Variables
+player_last_switch_time = pygame.time.get_ticks()
+player_switch_interval = 1000
+
 paused = False
 score = 0
 y_velocity = 0
@@ -55,38 +62,41 @@ snail_moveable = True
 keys = pygame.key.get_pressed()
 keydown = pygame.KEYDOWN
 
-
-
 while True:
     keys = pygame.key.get_pressed()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            exit()           
+            exit()
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE and on_ground and paused == False:
+            if event.key == pygame.K_SPACE and on_ground and not paused:
                 y_velocity = JUMP
                 player_moveable = True
                 on_ground = False
                 print('jump')
             if event.key == pygame.K_s:
-                screen.blit(Paused_surf,Paused_rect)
                 print('paused')
                 paused = not paused
                 player_moveable = False
                 snail_moveable = False
-            
+
     # Update player's vertical position with gravity
     player_rect.y += y_velocity
     y_velocity += gravity
-    
+
     if snail_moveable == True:
         snail_rect1.x -= 4
     else:
         snail_rect1.x += 0
-    
 
-    if not paused:  # Only allow movement if the game is not paused
+    # updating player's character
+    current_time = pygame.time.get_ticks()
+    if current_time - player_last_switch_time > player_switch_interval:
+        player_surface_index = (player_surface_index + 1) % len(player_surfaces)
+        player_last_switch_time = current_time
+
+    # movement
+    if not paused:
         if keys[pygame.K_a]:
             if player_moveable:
                 player_rect.x -= 8
@@ -96,8 +106,8 @@ while True:
         if keys[pygame.K_s]:
             if not event.type == pygame.KEYDOWN:
                 snail_moveable = True
-        
-    #check if the player is on ground
+
+    # check if the player is on ground
     if player_rect.y >= 220:
         player_rect.y = 220
         y_velocity = 0
@@ -106,7 +116,7 @@ while True:
     if snail_rect1.right <= 0:
         snail_rect1.left = 800
 
-    #check collision
+    # check collision
     if player_rect.colliderect(snail_rect1) and not collision_immune:
         collision_immune = True
         collision_time = pygame.time.get_ticks()
@@ -115,15 +125,14 @@ while True:
         collision = True
     else:
         collision = False
-    
-    
+
     # Check collision immunity
     if collision_immune and pygame.time.get_ticks() - collision_time > 1500:
         collision_immune = False
-    
+
     elif player_rect.x > snail_rect1.x and not point_immune:
-        if player_rect.y < snail_rect1.y -50:   
-            score +=1
+        if player_rect.y < snail_rect1.y - 50:
+            score += 1
             point_immune = True
             point_time = pygame.time.get_ticks()
         else:
@@ -139,10 +148,15 @@ while True:
         
     screen.blit(sky_surf, (0, 0))
     screen.blit(ground_surf, (0, GROUND))
-    screen.blit(score_surf,score_rect)
+    screen.blit(score_surf, score_rect)
     screen.blit(lives_surf, lives_rect)
     screen.blit(snail_surf1, snail_rect1)
-    screen.blit(player_surf, player_rect)
+    screen.blit(player_surfaces[player_surface_index], player_rect)
+
+    
+    if paused:
+        screen.blit(Paused_surf,Paused_rect)
+
 
     game_score_surf = test_font.render(str(score), False, 'LightBlue')
     game_score_rect = score_surf.get_rect(center = (810, 102))
