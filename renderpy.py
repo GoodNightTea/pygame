@@ -2,11 +2,16 @@ import pygame
 from tkinter import Tk
 pygame.init()
 
+
+second_font = pygame.font.Font(None, 20) 
+
 config = {
     'music_playing': False,
     'screen': pygame.display.set_mode((800, 400)),
+    'window_screen': pygame.display.set_caption('Pixel Jumper'),
     'clock': pygame.time.Clock(),
     'test_font': pygame.font.Font('font/Pixeltype.ttf', 50),
+    'second_font': pygame.font.Font(None, 30),
     'display_string': 'on' if False else 'off',  
     'score': 0,
     'life': 5,
@@ -21,28 +26,30 @@ def initalize_game(config):
     screen = config['screen']
     clock = config['clock']
     test_font = config['test_font']
+    second_font = config['second_font']
+    window_screen = config['window_screen']
 
-    return screen, clock, test_font
+    return screen, clock, test_font, window_screen, second_font
 
 
 def load_images(display_string, score, life, test_font, config):
 
-    sky_surf = pygame.image.load('graphics/Sky.png').convert()
-    ground_surf = pygame.image.load('graphics/ground.png').convert()
+    Background_surf = pygame.image.load('graphics/Background.png').convert()
     snail_surf1 = pygame.image.load('graphics/snail/snail1.png').convert_alpha()
     player_surf1 = pygame.image.load('graphics/player/player_walk_1.png').convert_alpha()
     player_surf2 = pygame.image.load('graphics/player/player_walk_2.png').convert_alpha()
-    music_surf = test_font.render('Music: ' + display_string, False, 'LightBlue')
+    player_standing_surf = pygame.image.load('graphics/player/player_stand.png').convert_alpha()
+    music_surf = second_font.render('Music: ' + display_string, False, 'LightBlue')
     game_score_surf = test_font.render(str(score), False, 'LightBlue')
     lifes_surf = test_font.render(str(life), False, 'LightBlue')
     score_surf = test_font.render('Score:', False, 'LightBlue')
     lives_surf = test_font.render('Lives: ', False, 'LightBlue')
     Paused_surf = test_font.render('Paused', False, 'Black')
     
-    return sky_surf, ground_surf, snail_surf1, player_surf1, player_surf2, music_surf, game_score_surf, lifes_surf, score_surf, lives_surf, Paused_surf
+    return Background_surf, snail_surf1, player_surf1, player_surf2, player_standing_surf, music_surf, game_score_surf, lifes_surf, score_surf, lives_surf, Paused_surf
 
 
-def variables(test_font, config):
+def variables(test_font, second_font, config):
 
     display_string = 'on' if config['music_playing'] else 'off' 
     player_last_switch_time = pygame.time.get_ticks()
@@ -63,3 +70,4 @@ def variables(test_font, config):
     keydown = pygame.KEYDOWN
     
     return player_last_switch_time, player_switch_interval, paused, y_velocity, on_ground, collision_immune, collision_time, point_immune, point_time, gravity, player_moveable, snail_moveable, keys, keydown
+
