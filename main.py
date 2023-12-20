@@ -4,24 +4,29 @@ from pygame import mixer
 from tkinter import Tk, filedialog
 from renderpy import initalize_game, load_images, variables
 
-
+second_font = pygame.font.Font(None, 20) 
 config = {
     'music_playing': False,
-    'screen': pygame.display.set_mode((800, 400)),
+    'screen': pygame.display.set_mode((1600, 800)),
+    'window_screen': pygame.display.set_caption('Pixel Jumper'),
     'clock': pygame.time.Clock(),
     'test_font': pygame.font.Font('font/Pixeltype.ttf', 50),
+    'second_font': pygame.font.Font(None, 30),
     'display_string': 'on' if False else 'off',  
     'score': 0,
     'life': 5,
 }
 
+current_time = pygame.time.get_ticks()
+window_screen = config['window_screen']
 score = config['score']
 life = config['life']
 display_string = 'on' if config['music_playing'] else 'off'
 
-screen, clock, test_font = initalize_game(config)
-sky_surf, ground_surf, snail_surf1, player_surf1, player_surf2, music_surf, game_score_surf, lifes_surf, score_surf, lives_surf, Paused_surf = load_images(display_string, score, life, test_font, config)
-(player_last_switch_time, player_switch_interval, paused, y_velocity, on_ground, collision_immune, collision_time, point_immune, point_time, gravity, player_moveable, snail_moveable, keys, keydown) = variables(test_font, config)
+
+screen, clock, test_font, window_screen, second_font = initalize_game(config)
+Background_surf, snail_surf1, player_surf1, player_surf2, player_standing_surf, music_surf, game_score_surf, lifes_surf, score_surf, lives_surf, Paused_surf = load_images(display_string, score, life, test_font, config)
+(player_last_switch_time, player_switch_interval, paused, y_velocity, on_ground, collision_immune, collision_time, point_immune, point_time, gravity, player_moveable, snail_moveable, keys, keydown) = variables(second_font, test_font, config)
 
 # Constants
 GROUND = 300
@@ -44,6 +49,7 @@ snail_rect1 = snail_surf1.get_rect(bottomright=(600, 300))
 player_surfaces = [player_surf1, player_surf2]
 player_surface_index = 0
 player_rect = player_surfaces[player_surface_index].get_rect(midbottom=(80, 300))
+player_standing_rect = player_standing_surf.get_rect(midbottom=(80, 300))
 score_rect = score_surf.get_rect(center=(700, 100))
 lives_rect = lives_surf.get_rect(center=(700, 50))
 Paused_rect = Paused_surf.get_rect(center=(400, 200))
@@ -67,8 +73,6 @@ def select_file():
         pygame.mixer.music.load(music_file)
         pygame.mixer.music.play()
         
-
-
 while True:
     keys = pygame.key.get_pressed()
     for event in pygame.event.get():
@@ -76,13 +80,16 @@ while True:
             pygame.quit()
             exit()
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE and on_ground and not paused:
+            if event.key == pygame.K_SPACE and not paused:
                 y_velocity = JUMP
+                pygame.mixer.music.load('audio/jump.mp3')
+                pygame.mixer.music.play()
                 player_moveable = True
                 on_ground = False
                 print('jumpin')
             if event.key == pygame.K_s:
                 print('pausin')
+                screen.blit(Paused_surf,Paused_rect)
                 paused = not paused
                 player_moveable = False
                 snail_moveable = False
@@ -90,10 +97,33 @@ while True:
                 print('vibin')
                 music_playing = True
                 select_file()
+    
+    
+    #display everything
+    display_string = 'on' if music_playing else 'off'
+    music_surf = test_font.render('Music: ' + display_string, False, 'LightBlue')
+    music_rect = music_surf.get_rect(center=(100, 50))
+        
+    
+    screen.blit(Background_surf, (0,0))
+    screen.blit(score_surf, score_rect)
+    screen.blit(lives_surf, lives_rect)
+    screen.blit(snail_surf1, snail_rect1)
+    screen.blit(player_surfaces[player_surface_index], player_rect)
+    screen.blit(music_surf, music_rect)
 
-    # player movement
+    game_score_surf = test_font.render(str(score), False, 'LightBlue')
+    game_score_rect = score_surf.get_rect(center = (810, 102))
+    
+    screen.blit(game_score_surf, game_score_rect)
+    lifes_surf = test_font.render(str(life), False, 'LightBlue')
+    lifes_rect = lifes_surf.get_rect(center = (760, 50))
+    screen.blit(lifes_surf, lifes_rect)
+   
+   # player movement
     player_rect.y += y_velocity
     y_velocity += gravity
+
     
     if music_playing == True:
         display_music = 'on'
@@ -109,24 +139,32 @@ while True:
         if keys[pygame.K_a]:
             if player_moveable:
                 player_rect.x -= 8
+                if current_time - player_last_switch_time > player_switch_interval:
+                    player_surface_index = (player_surface_index + 1) % len(player_surfaces)
+                    player_last_switch_time = current_time
         elif keys[pygame.K_d]:
             if player_moveable:
                 player_rect.x += 8
+                if current_time - player_last_switch_time > player_switch_interval:
+                    player_surface_index = (player_surface_index + 1) % len(player_surfaces)
+                    player_last_switch_time = current_time
         if keys[pygame.K_s]:
             if not event.type == pygame.KEYDOWN:
                 snail_moveable = True
+        else:
+            screen.blit(player_standing_surf, player_standing_rect)
     
     
     # updating player's character
-    current_time = pygame.time.get_ticks()
-    if current_time - player_last_switch_time > player_switch_interval:
-        player_surface_index = (player_surface_index + 1) % len(player_surfaces)
-        player_last_switch_time = current_time
+  #  player_surface_index = 
 
-    # movement
-
-
-    # check if the player is on ground
+    # checks for stats
+    
+    if music_playing == True:
+        display_music = 'on'
+    else:
+        display_music = 'off'
+        
     if player_rect.y >= 220:
         player_rect.y = 220
         y_velocity = 0
@@ -164,38 +202,10 @@ while True:
     #check point immunity
     if point_immune and pygame.time.get_ticks() - point_time > 2300:
         point_immune = False  
-
-
-    if paused:
-        screen.blit(Paused_surf,Paused_rect)
-        
-    if music_playing == True:
-        display_music = 'on'
-    else:
-        display_music = 'off'
     
-    display_string = 'on' if music_playing else 'off'
-    music_surf = test_font.render('Music: ' + display_string, False, 'LightBlue')
-    music_rect = music_surf.get_rect(center=(100, 50))
-        
-    screen.blit(sky_surf, (0, 0))
-    screen.blit(ground_surf, (0, GROUND))
-    screen.blit(score_surf, score_rect)
-    screen.blit(lives_surf, lives_rect)
-    screen.blit(snail_surf1, snail_rect1)
-    screen.blit(player_surfaces[player_surface_index], player_rect)
-    screen.blit(music_surf, music_rect)
-
-    game_score_surf = test_font.render(str(score), False, 'LightBlue')
-    game_score_rect = score_surf.get_rect(center = (810, 102))
-    
-    screen.blit(game_score_surf, game_score_rect)
-    
-    lifes_surf = test_font.render(str(life), False, 'LightBlue')
-    lifes_rect = lifes_surf.get_rect(center = (760, 50))
-    screen.blit(lifes_surf, lifes_rect)
     
     pygame.display.update()
     
     clock.tick(60)
+
 
